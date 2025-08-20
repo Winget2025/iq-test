@@ -102,5 +102,382 @@
         }
 
         .btn {
-            background: linear-gradient(135deg,
-\<Streaming stoppped because the conversation grew too long for this model\>
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 18px;
+            cursor: pointer;
+            display: block;
+            margin: 30px auto;
+            transition: transform 0.2s;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .time-options {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .time-option {
+            flex: 1;
+            padding: 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+        }
+
+        .time-option:hover, .time-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .question {
+            margin-bottom: 30px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .question-text {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        .options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .option {
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        .option:hover, .option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .quiz-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 30px;
+        }
+
+        .timer {
+            font-size: 18px;
+            font-weight: bold;
+            color: #764ba2;
+            background: rgba(118, 75, 162, 0.1);
+            padding: 10px 20px;
+            border-radius: 10px;
+        }
+
+        .result-card {
+            background: #f9f9f9;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            margin-top: 30px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+
+        .result-title {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 20px;
+        }
+
+        .result-value {
+            font-size: 48px;
+            font-weight: bold;
+            color: #764ba2;
+            margin-bottom: 15px;
+        }
+
+        .result-desc {
+            color: #555;
+            font-size: 18px;
+            margin-bottom: 30px;
+        }
+
+        .sound-control {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: white;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="sound-control" onclick="toggleSound()">🔊</div>
+        <div class="logo">
+            <div class="logo-w">W</div>
+            <div class="company-name">Winget Tech ®<br>ونجت للبرمجيات ®</div>
+        </div>
+
+        <div id="startScreen" class="screen active">
+            <h1>مرحباً بك في اختبار الذكاء الشامل</h1>
+            <div class="form-group">
+                <label for="name">اسمك:</label>
+                <input type="text" id="name" placeholder="أدخل اسمك هنا">
+            </div>
+            <div class="form-group">
+                <label for="age">عمرك:</label>
+                <input type="number" id="age" placeholder="أدخل عمرك هنا" min="4" max="18">
+            </div>
+            <div class="form-group">
+                <label>اختيار وقت الاختبار:</label>
+                <div class="time-options">
+                    <div class="time-option" data-value="no-limit" onclick="selectTimeOption(this)">بدون وقت محدد</div>
+                    <div class="time-option" data-value="per-question" onclick="selectTimeOption(this)">دقيقة لكل سؤال</div>
+                    <div class="time-option" data-value="total" onclick="selectTimeOption(this)">25 دقيقة إجمالي</div>
+                </div>
+            </div>
+            <button class="btn" onclick="startQuiz()">ابدأ الاختبار</button>
+        </div>
+
+        <div id="quizScreen" class="screen">
+            <h1>اختبار الذكاء</h1>
+            <div class="timer" id="timer">الوقت: --:--</div>
+            <div id="questionsContainer"></div>
+            <div class="quiz-footer">
+                <button class="btn" onclick="submitQuiz()">إنهاء الاختبار</button>
+            </div>
+        </div>
+
+        <div id="resultScreen" class="screen">
+            <h1>نتيجتك</h1>
+            <div class="result-card">
+                <div class="result-title">مستوى الذكاء (IQ):</div>
+                <div class="result-value" id="iqScore">--</div>
+                <div class="result-desc" id="iqDesc">--</div>
+                <div class="result-title">الوقت المستغرق:</div>
+                <div class="result-value" id="timeTaken">--</div>
+            </div>
+            <button class="btn" onclick="restartQuiz()">إعادة الاختبار</button>
+        </div>
+    </div>
+
+    <audio id="backgroundMusic" loop preload="auto">
+        <source src="https://cdn.freesound.org/previews/608/608811_3968818-lq.mp3" type="audio/mp3">
+    </audio>
+    <audio id="correctSound" preload="auto">
+        <source src="https://cdn.freesound.org/previews/350/350982_5450487-lq.mp3" type="audio/mp3">
+    </audio>
+    <audio id="wrongSound" preload="auto">
+        <source src="https://cdn.freesound.org/previews/657/657931_6142149-lq.mp3" type="audio/mp3">
+    </audio>
+
+    <script>
+        let currentQuestions = [];
+        let userAnswers = [];
+        let startTime, timerInterval;
+        let soundEnabled = true;
+        let timeOption = 'no-limit';
+        let totalTimeSeconds = 0;
+        let questionBank = {
+            '4-6': [
+                { id: 1, text: 'ما هو اللون الأحمر من هذه الخيارات؟', type: 'color', options: ['أزرق', 'أحمر', 'أخضر'], correct: 1, image: '' },
+                { id: 2, text: 'كم عدد المربعات في الصورة؟', type: 'count', options: ['2', '4', '6'], correct: 1, image: 'https://via.placeholder.com/150?text=4+مربعات' },
+                // أسئلة أخرى... (سيتم توسيع البنك ليشمل 8000 سؤال لاحقاً)
+            ],
+            '7-9': [
+                { id: 101, text: 'ما هو الناتج: 3 + 5 = ?', type: 'math', options: ['6', '8', '10'], correct: 1, image: '' },
+                { id: 102, text: 'أكمل السلسلة: 2, 4, 6, __', type: 'logic', options: ['8', '10', '12'], correct: 0, image: '' },
+            ],
+            '10-12': [
+                { id: 201, text: 'إذا كان اليوم الاثنين، فما هو اليوم بعد غد؟', type: 'logic', options: ['الثلاثاء', 'الأربعاء', 'الخميس'], correct: 1, image: '' },
+            ],
+            '13-15': [
+                { id: 301, text: 'ما هي عاصمة فرنسا؟', type: 'knowledge', options: ['لندن', 'باريس', 'برلين'], correct: 1, image: '' },
+            ],
+            '16-18': [
+                { id: 401, text: 'حل المعادلة: 2x + 3 = 7', type: 'math', options: ['x=1', 'x=2', 'x=3'], correct: 1, image: '' },
+            ]
+        };
+
+        function selectTimeOption(element) {
+            document.querySelectorAll('.time-option').forEach(opt => opt.classList.remove('selected'));
+            element.classList.add('selected');
+            timeOption = element.dataset.value;
+        }
+
+        function startQuiz() {
+            let name = document.getElementById('name').value.trim();
+            let age = parseInt(document.getElementById('age').value);
+            if (!name || !age || age < 4 || age > 18) {
+                alert('يرجى إدخال اسمك وعمرك بشكل صحيح (بين 4 و18 سنة)');
+                return;
+            }
+
+            let ageGroup = getAgeGroup(age);
+            currentQuestions = selectQuestions(ageGroup);
+            userAnswers = new Array(currentQuestions.length).fill(null);
+
+            document.getElementById('startScreen').classList.remove('active');
+            document.getElementById('quizScreen').classList.add('active');
+            renderQuestions();
+            startTimer();
+            if (soundEnabled) document.getElementById('backgroundMusic').play();
+        }
+
+        function getAgeGroup(age) {
+            if (age <= 6) return '4-6';
+            if (age <= 9) return '7-9';
+            if (age <= 12) return '10-12';
+            if (age <= 15) return '13-15';
+            return '16-18';
+        }
+
+        function selectQuestions(ageGroup) {
+            let bank = questionBank[ageGroup];
+            // هنا يتم اختيار 50 سؤال عشوائي غير مكرر (في الواقع سيكون هناك بنك ضخم)
+            return bank.slice(0, 50); // مؤقت حتى يتم توسيع البنك
+        }
+
+        function renderQuestions() {
+            let container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            currentQuestions.forEach((q, index) => {
+                let qElement = document.createElement('div');
+                qElement.className = 'question';
+                qElement.innerHTML = `
+                    <div class="question-text">${index + 1}. ${q.text}</div>
+                    ${q.image ? `<img src="${q.image}" style="max-width: 150px; margin: 10px 0; display: block;">` : ''}
+                    <div class="options" id="options-${index}">
+                    </div>
+                `;
+                container.appendChild(qElement);
+
+                let optionsContainer = document.getElementById(`options-${index}`);
+                q.options.forEach((opt, optIndex) => {
+                    let optElement = document.createElement('div');
+                    optElement.className = 'option';
+                    optElement.textContent = opt;
+                    optElement.onclick = () => selectOption(index, optIndex);
+                    if (userAnswers[index] === optIndex) optElement.classList.add('selected');
+                    optionsContainer.appendChild(optElement);
+                });
+            });
+        }
+
+        function selectOption(questionIndex, optionIndex) {
+            userAnswers[questionIndex] = optionIndex;
+            let options = document.querySelectorAll(`#options-${questionIndex} .option`);
+            options.forEach(opt => opt.classList.remove('selected'));
+            options[optionIndex].classList.add('selected');
+            if (soundEnabled) {
+                let q = currentQuestions[questionIndex];
+                if (optionIndex === q.correct) {
+                    document.getElementById('correctSound').play();
+                } else {
+                    document.getElementById('wrongSound').play();
+                }
+            }
+        }
+
+        function startTimer() {
+            startTime = new Date();
+            let totalSeconds = timeOption === 'total' ? 25 * 60 : Infinity;
+            if (timeOption === 'per-question') {
+                totalSeconds = currentQuestions.length * 60;
+            }
+            if (timeOption !== 'no-limit') {
+                totalTimeSeconds = totalSeconds;
+                timerInterval = setInterval(updateTimer, 1000);
+            } else {
+                document.getElementById('timer').textContent = 'الوقت: غير محدد';
+            }
+        }
+
+        function updateTimer() {
+            let currentTime = new Date();
+            let elapsed = Math.floor((currentTime - startTime) / 1000);
+            let remaining = totalTimeSeconds - elapsed;
+            if (remaining <= 0) {
+                clearInterval(timerInterval);
+                submitQuiz();
+                return;
+            }
+            let minutes = Math.floor(remaining / 60);
+            let seconds = remaining % 60;
+            document.getElementById('timer').textContent = `الوقت: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            let endTime = new Date();
+            let timeElapsed = Math.floor((endTime - startTime) / 1000);
+            let correctCount = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === currentQuestions[index].correct) correctCount++;
+            });
+            let score = Math.round((correctCount / currentQuestions.length) * 100);
+            let iqScore = calculateIQ(score);
+            displayResult(iqScore, timeElapsed);
+        }
+
+        function calculateIQ(score) {
+            return Math.round(70 + (score / 100) * 60); // تقريبي من 70 إلى 130
+        }
+
+        function displayResult(iqScore, timeElapsed) {
+            document.getElementById('quizScreen').classList.remove('active');
+            document.getElementById('resultScreen').classList.add('active');
+            document.getElementById('iqScore').textContent = iqScore;
+            let desc = iqScore > 110 ? 'ممتاز! ذكاء أعلى من المتوسط.' : 
+                       iqScore > 90 ? 'جيد! ذكاء متوسط إلى مرتفع.' : 
+                       'مقبول! هناك مجال للتحسين.';
+            document.getElementById('iqDesc').textContent = desc;
+            let minutes = Math.floor(timeElapsed / 60);
+            let seconds = timeElapsed % 60;
+            document.getElementById('timeTaken').textContent = `${minutes} دقيقة و ${seconds} ثانية`;
+            if (soundEnabled) document.getElementById('backgroundMusic').pause();
+        }
+
+        function restartQuiz() {
+            document.getElementById('resultScreen').classList.remove('active');
+            document.getElementById('startScreen').classList.add('active');
+            document.getElementById('name').value = '';
+            document.getElementById('age').value = '';
+            document.querySelectorAll('.time-option').forEach(opt => opt.classList.remove('selected'));
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.querySelector('.sound-control').textContent = soundEnabled ? '🔊' : '🔇';
+            if (soundEnabled) {
+                document.getElementById('backgroundMusic').play();
+            } else {
+                document.getElementById('backgroundMusic').pause();
+            }
+        }
+    </script>
+</body>
+</html>
